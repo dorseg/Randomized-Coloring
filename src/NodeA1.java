@@ -33,7 +33,7 @@ public class NodeA1 implements Runnable {
             System.out.println("Node " + id + " executes round " + round);
             tempColors.clear(); // T_v = empty set
             color = new Random().nextInt(2*Main.DELTA) + 1; // drawn color from [1,...,2*Delta]
-            broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighboors
+            broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighbors
             Queue<ColorMessage> copyMessages = new ConcurrentLinkedQueue(inMessages);
             for (ColorMessage msg : copyMessages){
                 if (!msg.isFinal()){
@@ -57,15 +57,12 @@ public class NodeA1 implements Runnable {
                     }
                 }
             }
-            try {
-                System.out.println("Node " + id + " finished round " + round);
-                Main.barrier.await(); // wait for all nodes to finish
+            System.out.println("Node " + id + " finished round " + round);
+            if (terminated)
+                Main.phaser.arriveAndDeregister();
+            else {
+                Main.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
                 round++;
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (BrokenBarrierException e) {
-                e.printStackTrace();
             }
         }
         System.out.println("Node " + id + " terminated with color " + color);

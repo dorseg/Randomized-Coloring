@@ -1,17 +1,14 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by dorse on 14/07/2017.
  */
 public class Main {
 
-    public static CyclicBarrier barrier;
+    public static Phaser phaser;
     public static int DELTA;
 
     public static void main(String[] args){
@@ -32,7 +29,12 @@ public class Main {
 
         int numOfNodes = nodes.size();
 
-        barrier = new CyclicBarrier(numOfNodes, () -> System.out.println("BarrierAction executed: last thread entering the barrier"));
+        phaser = new Phaser(numOfNodes){
+            protected boolean onAdvance(int phase, int registeredParties) {
+                System.out.println("======= Phase " + phase + " finished: last thread entered to the phaser =======");
+                return registeredParties == 0;
+            }
+        };
         ExecutorService e = Executors.newFixedThreadPool(numOfNodes);
         for(NodeA1 node: nodes){
             e.execute(new Thread(node));
