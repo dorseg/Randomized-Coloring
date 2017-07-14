@@ -1,10 +1,10 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.*;
 
 /**
  * Created by dorse on 14/07/2017.
@@ -41,13 +41,16 @@ public class Main {
         e.shutdown();
 
         try {
+            // wait for all threads to terminate
             e.awaitTermination(Integer.MAX_VALUE, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
 
+        System.out.println();
         for(NodeA1 node: nodes){
             System.out.println("Node: " + node.getId() + ", Color: " + node.getColor());
         }
+        System.out.println("========== END ==========");
     }
 }

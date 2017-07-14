@@ -1,6 +1,6 @@
+import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.*;
 
 /**
  * This class represents a node in algorithm 1 - Rand-2Delta
@@ -60,10 +60,8 @@ public class NodeA1 implements Runnable {
             try {
                 System.out.println("Node " + id + " finished round " + round);
                 Main.barrier.await(); // wait for all nodes to finish
-                Object lock = new Object();
-                synchronized (lock){
-                    round++;
-                }
+                round++;
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {
