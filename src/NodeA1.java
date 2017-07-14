@@ -1,20 +1,20 @@
-import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 
 /**
- * Created by dorse on 14/07/2017.
+ * This class represents a node in algorithm 1 - Rand-2Delta
  */
-public class NodeA1 implements Runnable{
+public class NodeA1 implements Runnable {
 
     private int id;
     private List<NodeA1> neighbors;
-    private Queue<ColorMessage> inMessages;
-    private Set<Integer> tempColors; // set of temporary colors selected by neighbors of this Node.
-    private Set<Integer> finalColors; // set of final colors selected by neighbors of this Node.
-    private int color; // the drawn color each round
+    private Queue<ColorMessage> inMessages; // income message - final and not final
+    private Set<Integer> tempColors; // T_v - set of temporary colors selected by neighbors of this Node.
+    private Set<Integer> finalColors; // F_v - set of final colors selected by neighbors of this Node.
+    private int color; // the drawn color in each round
     private boolean terminated;
-    private int round;
+    private volatile int round;
 
     public NodeA1(int id){
         this.id = id;
@@ -31,17 +31,19 @@ public class NodeA1 implements Runnable{
     public void run() {
         while (!terminated){
             System.out.println("Node " + id + " executes round " + round);
-            tempColors.clear();
-            color = new Random().nextInt(2*Main.DELTA) + 1;
-            broadcastMessage(new ColorMessage(color, false));
+            tempColors.clear(); // T_v = empty set
+            color = new Random().nextInt(2*Main.DELTA) + 1; // drawn color from [1,...,2*Delta]
+            broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighboors
             Queue<ColorMessage> copyMessages = new ConcurrentLinkedQueue(inMessages);
             for (ColorMessage msg : copyMessages){
-                if (!msg.isFinal()) {
+                if (!msg.isFinal()){
+                    // add message to T_v and remove it from income messages
                     tempColors.add(msg.getColor());
                     inMessages.remove(msg);
                 }
             }
             if (!tempColors.contains(color) && !finalColors.contains(color)){
+                // send final message to all neighbors, and terminate. The color will be the current color.
                 broadcastMessage(new ColorMessage(color, true));
                 terminated = true;
             }
@@ -49,6 +51,7 @@ public class NodeA1 implements Runnable{
                 copyMessages = new ConcurrentLinkedQueue(inMessages);
                 for (ColorMessage msg : copyMessages){
                     if (msg.isFinal()) {
+                        // add message to F_v and remove it from income messages
                         finalColors.add(msg.getColor());
                         inMessages.remove(msg);
                     }
@@ -56,8 +59,11 @@ public class NodeA1 implements Runnable{
             }
             try {
                 System.out.println("Node " + id + " finished round " + round);
-                Main.barrier.await();
-                round++;
+                Main.barrier.await(); // wait for all nodes to finish
+                Object lock = new Object();
+                synchronized (lock){
+                    round++;
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {
@@ -67,10 +73,16 @@ public class NodeA1 implements Runnable{
         System.out.println("Node " + id + " terminated with color " + color);
     }
 
+    /**
+     * receive message from neighbor u
+     */
     private void receiveMessage(ColorMessage msg){
         inMessages.add(msg);
     }
 
+    /**
+     * send color message to all neighbors
+     */
     private void broadcastMessage(ColorMessage msg){
         for(NodeA1 neighbor: neighbors)
             neighbor.receiveMessage(msg);
