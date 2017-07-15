@@ -30,7 +30,6 @@ public abstract class Node implements Runnable{
     @Override
     public void run() {
         while (!terminated){
-//            System.out.println("Node " + id + " executes round " + Main.round.get()); // <<<<<<<< REMOVE
             tempColors.clear(); // T_v = empty set
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
                 continue;
@@ -59,13 +58,11 @@ public abstract class Node implements Runnable{
                     }
                 }
             }
-//            System.out.println("Node " + id + " finished round " + Main.round.get()); // <<<<<<<< REMOVE
             if (terminated)
                 Experiments.phaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
             else
                 Experiments.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
         }
-//        System.out.println("Node " + id + " terminated with color " + color); // <<<<<<<< REMOVE
     }
 
     /**

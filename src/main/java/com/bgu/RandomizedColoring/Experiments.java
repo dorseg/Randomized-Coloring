@@ -3,6 +3,7 @@ package com.bgu.RandomizedColoring;
 import com.bgu.RandomizedColoring.Algorithm1.NodeA1VertexFactory;
 import com.bgu.RandomizedColoring.Algorithm2.NodeA2VertexFactory;
 import org.jgrapht.Graphs;
+import org.jgrapht.VertexFactory;
 import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
@@ -14,14 +15,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Eli on 15/07/2017.
- */
 public class Experiments {
 
     // modify for execution
     public final static int numOfGraphs = 50;
-    public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
+    public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
     public static int numOfNodes = 100;
     public static double p = 0.5;
 
@@ -59,27 +57,29 @@ public class Experiments {
         System.out.println("\n======== Results ========");
         System.out.println("Algorithm number: " + ALGO);
         System.out.println("Number of tested graphs: " + numOfGraphs);
-        System.out.println("num of nodes: " + numOfNodes);
-        System.out.println("Test Result: " + allTestPassed);
+        System.out.println("Number of nodes: " + numOfNodes);
+        System.out.println("DELTA: " + DELTA);
+        System.out.println("probability: " + p);
         System.out.println("Total rounds: " + averageRounds);
         System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
         System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println("DELTA: " + DELTA);
-        System.out.println("probability: " + p);
+        System.out.println("Test Result: " + (allTestPassed ? "PASS":"FAIL"));
         System.out.println("========== END ==========");
     }
 
     private static SimpleGraph<Node,DefaultEdge> makeGraph() {
         GnpRandomGraphGenerator<Node,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(numOfNodes, p);
         SimpleGraph<Node,DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
-        if (ALGO == 1)
-            graphGen.generateGraph(graph, new NodeA1VertexFactory(0), null);
+        VertexFactory<Node> vertexFactory;
+        if (ALGO ==1 )
+            vertexFactory = new NodeA1VertexFactory(0);
         else if (ALGO == 2)
-            graphGen.generateGraph(graph, new NodeA2VertexFactory(0), null);
+            vertexFactory = new NodeA2VertexFactory(0);
         else {
             System.err.println("ALGO is " + ALGO + ". Exiting...");
             System.exit(1);
         }
+        graphGen.generateGraph(graph, vertexFactory, null);
         return graph;
     }
 
@@ -114,12 +114,27 @@ public class Experiments {
         }
     }
 
+    private static boolean legalColor(int color){
+        int upperBound;
+        if (ALGO == 1)
+            upperBound = 2*DELTA;
+        else if (ALGO == 2)
+            upperBound = DELTA+1;
+        return color >= 1 && color <= upperBound;
+    }
+
     private static boolean test(Set<Node> nodes){
         for (Node v: nodes){
             int color = v.getColor();
+            if (!legalColor(color)) {
+                System.out.println("Test failed: illegal color!!!");
+                return false;
+            }
             for (Node u: v.getNeighbors()){
-                if (color == u.getColor())
+                if (color == u.getColor()) {
+                    System.out.println("Test failed: a neighbor with same color!!!");
                     return false;
+                }
             }
         }
         return true;

@@ -1,7 +1,6 @@
 package com.bgu.RandomizedColoring.Algorithm1;
 
 import com.bgu.RandomizedColoring.Experiments;
-import com.bgu.RandomizedColoring.Main;
 import com.bgu.RandomizedColoring.Node;
 
 import java.util.Random;
