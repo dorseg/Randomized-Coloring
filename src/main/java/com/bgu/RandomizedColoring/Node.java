@@ -3,6 +3,10 @@ package com.bgu.RandomizedColoring;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * This class represents a node in a graph, for both
+ * <i>Rand-2Delta</i> and <i>Rand-Delta-Plus1</i> algorithms.
+ */
 public abstract class Node implements Runnable{
 
     protected int id; // unique id for each node.
@@ -12,10 +16,6 @@ public abstract class Node implements Runnable{
     protected Set<Integer> finalColors; // F_v - set of final colors selected by neighbors of this node.
     protected int color; // the drawn color in each round.
     protected boolean terminated;
-
-    public Node(){
-        this(0);
-    }
 
     public Node(int id){
         this.id = id;
@@ -32,7 +32,6 @@ public abstract class Node implements Runnable{
         while (!terminated){
 //            System.out.println("Node " + id + " executes round " + Main.round.get()); // <<<<<<<< REMOVE
             tempColors.clear(); // T_v = empty set
-            color = new Random().nextInt(2); // drawn color from [0,1]
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
                 continue;
             color = chooseColor();
@@ -62,19 +61,28 @@ public abstract class Node implements Runnable{
             }
 //            System.out.println("Node " + id + " finished round " + Main.round.get()); // <<<<<<<< REMOVE
             if (terminated)
-                Main.phaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+                Experiments.phaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
             else
-                Main.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
+                Experiments.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
         }
 //        System.out.println("Node " + id + " terminated with color " + color); // <<<<<<<< REMOVE
     }
 
+    /**
+     * Each algorithm choose color for node differently.
+     * @return color chosen color
+     */
     public abstract int chooseColor();
 
+    /**
+     * Define whether moving to the next round, according to the drawn color.
+     * relevant only for <i>Rand-Delta-Plus1</i> algorithm.
+     * @return
+     */
     public abstract boolean checkColor();
 
     /**
-     * receive message from neighbor u
+     * Receive message from neighbor u
      */
     protected void receiveMessage(ColorMessage msg){
         inMessages.add(msg);

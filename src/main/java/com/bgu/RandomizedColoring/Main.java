@@ -20,7 +20,8 @@ public class Main {
 
     public static Phaser phaser; // in order to schedule the rounds
     public static int DELTA; // maximal node degree
-    public final static int NODESNUM = 100;
+    public final static int numOfNodes = 100;
+    public final static int ALGO = 1;
 
     public static AtomicInteger round = new AtomicInteger(); // number of rounds
 
@@ -29,14 +30,22 @@ public class Main {
         //double p = 0.01 * (new Random().nextInt((85 - 50) + 1) + 50); // p=[0.5;0.85]
         double p = 0.5;
 
-        GnpRandomGraphGenerator<Node,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(NODESNUM, p);
-        graphGen.generateGraph(graph, new NodeA2VertexFactory(0), null);
+        GnpRandomGraphGenerator<Node,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(numOfNodes, p);
+        if (ALGO == 1)
+            graphGen.generateGraph(graph, new NodeA1VertexFactory(0), null);
+        else if (ALGO == 2)
+            graphGen.generateGraph(graph, new NodeA2VertexFactory(0), null);
+        else {
+            System.err.println("ALGO is " + ALGO + ". Exiting...");
+            System.exit(1);
+        }
+
         Set<Node> nodes = graph.vertexSet();
 
         setNeighborsForEachNode(graph);
         DELTA = calculateDelta(nodes);
 
-        phaser = new Phaser(NODESNUM){
+        phaser = new Phaser(numOfNodes){
             protected boolean onAdvance(int phase, int registeredParties) {
                 System.out.println("======= Phase " + phase + " finished. number of nodes for next phase: "+registeredParties+" =======");
                 round.incrementAndGet();
@@ -44,7 +53,7 @@ public class Main {
             }
         };
 
-        ExecutorService e = Executors.newFixedThreadPool(NODESNUM);
+        ExecutorService e = Executors.newFixedThreadPool(numOfNodes);
         for(Node node: nodes)
             e.execute(new Thread(node));
 
@@ -63,10 +72,10 @@ public class Main {
         }
 
         System.out.println("\n======== Results ========");
-        System.out.println("num of nodes: " + NODESNUM);
+        System.out.println("num of nodes: " + numOfNodes);
         System.out.println("Test Result: " + test(nodes));
         System.out.println("Total rounds: " + round.get());
-        System.out.println("log(numOfNodes) = " +Math.log(NODESNUM)/Math.log(2));
+        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
         System.out.println("DELTA: " + DELTA);
         System.out.println("Max color: " + maxColor(nodes));
         System.out.println("probability: " + p);
