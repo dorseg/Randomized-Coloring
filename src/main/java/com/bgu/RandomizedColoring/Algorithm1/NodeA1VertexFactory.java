@@ -1,11 +1,12 @@
-package com.bgu.Algorithm1;
+package com.bgu.RandomizedColoring.Algorithm1;
 
+import com.bgu.RandomizedColoring.Node;
 import org.jgrapht.VertexFactory;
 
 /**
- * Factory for NodeA1, starting with <code>id = 0</code>
+ * Factory for <b>NodeA1</b>, starting with <code>id = 0</code>
  */
-public class NodeA1VertexFactory implements VertexFactory<NodeA1> {
+public class NodeA1VertexFactory implements VertexFactory<Node> {
 
     private int id = 0;
 
@@ -25,8 +26,8 @@ public class NodeA1VertexFactory implements VertexFactory<NodeA1> {
     }
 
     @Override
-    public NodeA1 createVertex(){
-        NodeA1 newNode = new NodeA1(id);
+    public Node createVertex(){
+        Node newNode = new NodeA1(id);
         id++;
         return newNode;
     }

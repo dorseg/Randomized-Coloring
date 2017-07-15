@@ -1,5 +1,7 @@
-package com.bgu.Algorithm1;
+package com.bgu.RandomizedColoring;
 
+import com.bgu.RandomizedColoring.Algorithm1.NodeA1VertexFactory;
+import com.bgu.RandomizedColoring.Algorithm2.NodeA2VertexFactory;
 import org.jgrapht.Graphs;
 import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
@@ -23,12 +25,13 @@ public class Main {
     public static AtomicInteger round = new AtomicInteger(); // number of rounds
 
     public static void main(String[] args){
-        SimpleGraph<NodeA1, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
-        double p = 0.01 * (new Random().nextInt((85 - 50) + 1) + 50); // p=[0.5;0.85]
+        SimpleGraph<Node, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+        //double p = 0.01 * (new Random().nextInt((85 - 50) + 1) + 50); // p=[0.5;0.85]
+        double p = 0.5;
 
-        GnpRandomGraphGenerator<NodeA1,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(NODESNUM, p);
-        graphGen.generateGraph(graph, new NodeA1VertexFactory(0), null);
-        Set<NodeA1> nodes = graph.vertexSet();
+        GnpRandomGraphGenerator<Node,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(NODESNUM, p);
+        graphGen.generateGraph(graph, new NodeA2VertexFactory(0), null);
+        Set<Node> nodes = graph.vertexSet();
 
         setNeighborsForEachNode(graph);
         DELTA = calculateDelta(nodes);
@@ -42,7 +45,7 @@ public class Main {
         };
 
         ExecutorService e = Executors.newFixedThreadPool(NODESNUM);
-        for(NodeA1 node: nodes)
+        for(Node node: nodes)
             e.execute(new Thread(node));
 
         e.shutdown();
@@ -55,7 +58,7 @@ public class Main {
         }
 
         System.out.println();
-        for(NodeA1 node: nodes){
+        for(Node node: nodes){
             System.out.println("Node: " + node.getId() + ", Color: " + node.getColor());
         }
 
@@ -65,13 +68,14 @@ public class Main {
         System.out.println("Total rounds: " + round.get());
         System.out.println("log(numOfNodes) = " +Math.log(NODESNUM)/Math.log(2));
         System.out.println("DELTA: " + DELTA);
+        System.out.println("Max color: " + maxColor(nodes));
         System.out.println("probability: " + p);
         System.out.println("========== END ==========");
     }
 
-    private static int calculateDelta(Set<NodeA1> nodes){
+    private static int calculateDelta(Set<Node> nodes){
         int maxDeg = 0;
-        for (NodeA1 node: nodes){
+        for (Node node: nodes){
             int deg = node.getNeighbors().size();
             if (deg > maxDeg)
                 maxDeg = deg;
@@ -79,22 +83,32 @@ public class Main {
         return maxDeg;
     }
 
-    private static void setNeighborsForEachNode(SimpleGraph<NodeA1, DefaultEdge> graph) {
-        Set<NodeA1> nodes = graph.vertexSet();
-        for (NodeA1 node: nodes){
-            List<NodeA1> neighbors = Graphs.neighborListOf(graph, node);
+    private static void setNeighborsForEachNode(SimpleGraph<Node, DefaultEdge> graph) {
+        Set<Node> nodes = graph.vertexSet();
+        for (Node node: nodes){
+            List<Node> neighbors = Graphs.neighborListOf(graph, node);
             node.setNeighbors(neighbors);
         }
     }
 
-    private static String test(Set<NodeA1> nodes){
-        for (NodeA1 v: nodes){
+    private static String test(Set<Node> nodes){
+        for (Node v: nodes){
             int color = v.getColor();
-            for (NodeA1 u: v.getNeighbors()){
+            for (Node u: v.getNeighbors()){
                 if (color == u.getColor())
                     return "FAIL";
             }
         }
         return "PASS";
+    }
+
+    private static int maxColor(Set<Node> nodes){
+        int max = 0;
+        for (Node v: nodes){
+            int color = v.getColor();
+            if (color > max)
+                max = color;
+        }
+        return max;
     }
 }

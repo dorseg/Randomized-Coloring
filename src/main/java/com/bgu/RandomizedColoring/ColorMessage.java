@@ -1,4 +1,4 @@
-package com.bgu.Algorithm1;
+package com.bgu.RandomizedColoring;
 
 /**
  * Class represents a message between two nodes. If the message is final
