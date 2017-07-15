@@ -1,6 +1,5 @@
 package com.bgu.Algorithm1;
 
-import javafx.scene.media.SubtitleTrack;
 import org.jgrapht.Graphs;
 import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
@@ -32,7 +31,7 @@ public class Main {
         Set<NodeA1> nodes = graph.vertexSet();
 
         setNeighborsForEachNode(graph);
-        DELTA =  calculateDelta(nodes);
+        DELTA = calculateDelta(nodes);
 
         phaser = new Phaser(NODESNUM){
             protected boolean onAdvance(int phase, int registeredParties) {
