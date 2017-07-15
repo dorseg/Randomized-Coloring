@@ -1,3 +1,5 @@
+package com.bgu.Algorithm1;
+
 /**
  * Created by dorse on 14/07/2017.
  */

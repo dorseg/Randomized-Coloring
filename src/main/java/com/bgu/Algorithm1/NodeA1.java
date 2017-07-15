@@ -1,5 +1,6 @@
+package com.bgu.Algorithm1;
+
 import java.util.*;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -93,6 +94,10 @@ public class NodeA1 implements Runnable {
 
     public int getColor(){
         return color;
+    }
+
+    public List<NodeA1> getNeighbors(){
+        return neighbors;
     }
 
 }
