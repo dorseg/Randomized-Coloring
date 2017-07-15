@@ -8,14 +8,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class NodeA1 implements Runnable {
 
-    private int id;
-    private List<NodeA1> neighbors;
-    private Queue<ColorMessage> inMessages; // income message - final and not final
-    private Set<Integer> tempColors; // T_v - set of temporary colors selected by neighbors of this Node.
-    private Set<Integer> finalColors; // F_v - set of final colors selected by neighbors of this Node.
-    private int color; // the drawn color in each round
+    private int id; // unique id for each node.
+    private List<NodeA1> neighbors; // List of node neighbors.
+    private Queue<ColorMessage> inMessages; // income messages - final and not final.
+    private Set<Integer> tempColors; // T_v - set of temporary colors selected by neighbors of this node.
+    private Set<Integer> finalColors; // F_v - set of final colors selected by neighbors of this node.
+    private int color; // the drawn color in each round.
     private boolean terminated;
-    private volatile int round;
 
     public NodeA1(int id){
         this.id = id;
@@ -25,13 +24,12 @@ public class NodeA1 implements Runnable {
         finalColors = new HashSet<>();
         color = -1;
         terminated = false;
-        round = 0;
     }
 
     @Override
     public void run() {
         while (!terminated){
-            System.out.println("Node " + id + " executes round " + round);
+//            System.out.println("Node " + id + " executes round " + Main.round.get()); // <<<<<<<< REMOVE
             tempColors.clear(); // T_v = empty set
             color = new Random().nextInt(2*Main.DELTA) + 1; // drawn color from [1,...,2*Delta]
             broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighbors
@@ -58,15 +56,13 @@ public class NodeA1 implements Runnable {
                     }
                 }
             }
-            System.out.println("Node " + id + " finished round " + round);
+//            System.out.println("Node " + id + " finished round " + Main.round.get()); // <<<<<<<< REMOVE
             if (terminated)
-                Main.phaser.arriveAndDeregister();
-            else {
+                Main.phaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+            else
                 Main.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
-                round++;
-            }
         }
-        System.out.println("Node " + id + " terminated with color " + color);
+//        System.out.println("Node " + id + " terminated with color " + color); // <<<<<<<< REMOVE
     }
 
     /**
@@ -84,10 +80,14 @@ public class NodeA1 implements Runnable {
             neighbor.receiveMessage(msg);
     }
 
+    /**
+     * update the neighbors for the node after the graph creation.
+     */
     public void setNeighbors(List<NodeA1> nodes){
         neighbors.addAll(nodes);
     }
 
+    // Getters
     public int getId(){
         return id;
     }

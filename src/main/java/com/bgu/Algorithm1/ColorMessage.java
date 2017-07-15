@@ -1,7 +1,8 @@
 package com.bgu.Algorithm1;
 
 /**
- * Created by dorse on 14/07/2017.
+ * Class represents a message between two nodes. If the message is final
+ * than <code>isFinal = True</code>
  */
 public class ColorMessage {
     private int color;

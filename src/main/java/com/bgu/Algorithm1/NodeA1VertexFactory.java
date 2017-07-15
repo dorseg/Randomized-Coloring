@@ -2,6 +2,9 @@ package com.bgu.Algorithm1;
 
 import org.jgrapht.VertexFactory;
 
+/**
+ * Factory for NodeA1, starting with <code>id = 0</code>
+ */
 public class NodeA1VertexFactory implements VertexFactory<NodeA1> {
 
     private int id = 0;
