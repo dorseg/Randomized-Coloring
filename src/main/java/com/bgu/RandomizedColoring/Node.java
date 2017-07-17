@@ -34,9 +34,9 @@ public abstract class Node implements Runnable{
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
                 continue;
             color = chooseColor();
-            Experiments.colorPhaser.arriveAndAwaitAdvance(); // wait for all nodes to choose color
 
-            broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighbors
+            broadcastMessage(new ColorMessage(color, false)); // send a non final message to all neighbors
+            Experiments.colorPhaser.arriveAndAwaitAdvance(); // wait for all nodes to choose color
             Queue<ColorMessage> copyMessages = new ConcurrentLinkedQueue(inMessages);
             for (ColorMessage msg : copyMessages){
                 if (!msg.isFinal()){
@@ -45,12 +45,14 @@ public abstract class Node implements Runnable{
                     inMessages.remove(msg);
                 }
             }
+
             if (!tempColors.contains(color) && !finalColors.contains(color)){
                 // send final message to all neighbors, and terminate. The color will be the current color.
                 broadcastMessage(new ColorMessage(color, true));
                 terminated = true;
             }
             else {
+                Experiments.finalColorPhaser.arriveAndAwaitAdvance();
                 copyMessages = new ConcurrentLinkedQueue(inMessages);
                 for (ColorMessage msg : copyMessages){
                     if (msg.isFinal()) {
@@ -61,8 +63,10 @@ public abstract class Node implements Runnable{
                 }
             }
             if (terminated) {
-                Experiments.roundPhaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
-                Experiments.colorPhaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+                // reduces the number of nodes required to advance in the next round
+                Experiments.roundPhaser.arriveAndDeregister();
+                Experiments.colorPhaser.arriveAndDeregister();
+                Experiments.finalColorPhaser.arriveAndDeregister();
 
             }
             else

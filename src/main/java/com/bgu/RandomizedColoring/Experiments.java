@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class Experiments {
 
     // modify for execution
-    public final static int numOfGraphs = 10;
+    public final static int numOfGraphs = 50;
     public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
     public static int numOfNodes = 100;
     public static double p = 0.5;
@@ -28,6 +28,7 @@ public class Experiments {
     public static int round = 0;
     public static Phaser roundPhaser;
     public static Phaser colorPhaser;
+    public static Phaser finalColorPhaser;
 
     public static void main(String[] args) {
         boolean allTestPassed = true;
@@ -37,16 +38,14 @@ public class Experiments {
             System.out.println("\n===================== Graph number "+ i +" =====================");
             roundPhaser = new Phaser(numOfNodes){
                 protected boolean onAdvance(int phase, int registeredParties) {
-                    System.out.println("======= Phase " + phase + " finished. number of nodes for next phase: "+registeredParties+" =======");
+                    System.out.println("======= Phase " + phase + " finished. Number of nodes for next phase: "+registeredParties+" =======");
                     round++;
                     return registeredParties == 0;
                 }
             };
-            colorPhaser = new Phaser(numOfNodes){
-                protected boolean onAdvance(int phase, int registeredParties) {
-                    return registeredParties == 0;
-                }
-            };
+            colorPhaser = new Phaser(numOfNodes);
+            finalColorPhaser = new Phaser(numOfNodes);
+
             SimpleGraph<Node,DefaultEdge> graph = makeGraph();
             Set<Node> nodes = graph.vertexSet();
             setNeighborsForEachNode(graph);
@@ -133,7 +132,7 @@ public class Experiments {
         for (Node v: nodes){
             int color = v.getColor();
             if (!legalColor(color)) {
-                System.err.println("Test failed: illegal color!!!");
+                System.err.println("Test failed: illegal color " + color + "!!!");
                 return false;
             }
             for (Node u: v.getNeighbors()){
