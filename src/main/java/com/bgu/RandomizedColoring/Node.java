@@ -34,6 +34,8 @@ public abstract class Node implements Runnable{
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
                 continue;
             color = chooseColor();
+            Experiments.colorPhaser.arriveAndAwaitAdvance(); // wait for all nodes to choose color
+
             broadcastMessage(new ColorMessage(color, false)); // send non final message to all neighbors
             Queue<ColorMessage> copyMessages = new ConcurrentLinkedQueue(inMessages);
             for (ColorMessage msg : copyMessages){
@@ -58,23 +60,26 @@ public abstract class Node implements Runnable{
                     }
                 }
             }
-            if (terminated)
-                Experiments.phaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+            if (terminated) {
+                Experiments.roundPhaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+                Experiments.colorPhaser.arriveAndDeregister(); // reduces the number of nodes required to advance in the next round
+
+            }
             else
-                Experiments.phaser.arriveAndAwaitAdvance(); // wait for all nodes to finish
+                Experiments.roundPhaser.arriveAndAwaitAdvance(); // wait for all nodes to choose color
+
         }
     }
 
     /**
-     * Each algorithm choose color for node differently.
-     * @return color chosen color
+     * Each algorithm choose node's color differently.
+     * @return chosen color
      */
     public abstract int chooseColor();
 
     /**
      * Define whether moving to the next round, according to the drawn color.
      * relevant only for <i>Rand-Delta-Plus1</i> algorithm.
-     * @return
      */
     public abstract boolean checkColor();
 

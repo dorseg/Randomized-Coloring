@@ -18,15 +18,16 @@ import java.util.concurrent.TimeUnit;
 public class Experiments {
 
     // modify for execution
-    public final static int numOfGraphs = 50;
-    public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
+    public final static int numOfGraphs = 10;
+    public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
     public static int numOfNodes = 100;
     public static double p = 0.5;
 
     // global variables
     public static int DELTA = -1;
     public static int round = 0;
-    public static Phaser phaser;
+    public static Phaser roundPhaser;
+    public static Phaser colorPhaser;
 
     public static void main(String[] args) {
         boolean allTestPassed = true;
@@ -34,10 +35,15 @@ public class Experiments {
 
         for (int i=0; i<numOfGraphs; i++) {
             System.out.println("\n===================== Graph number "+ i +" =====================");
-            phaser = new Phaser(numOfNodes){
+            roundPhaser = new Phaser(numOfNodes){
                 protected boolean onAdvance(int phase, int registeredParties) {
                     System.out.println("======= Phase " + phase + " finished. number of nodes for next phase: "+registeredParties+" =======");
                     round++;
+                    return registeredParties == 0;
+                }
+            };
+            colorPhaser = new Phaser(numOfNodes){
+                protected boolean onAdvance(int phase, int registeredParties) {
                     return registeredParties == 0;
                 }
             };
@@ -63,7 +69,7 @@ public class Experiments {
         System.out.println("Total rounds: " + averageRounds);
         System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
         System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println("Test Result: " + (allTestPassed ? "PASS":"FAIL"));
+        System.out.println("Test Result: " + (allTestPassed ? ANSI_GREEN + "PASS" + ANSI_RESET:ANSI_RED  +  "FAIL" + ANSI_RESET));
         System.out.println("========== END ==========");
     }
 
@@ -118,7 +124,7 @@ public class Experiments {
         int upperBound;
         if (ALGO == 1)
             upperBound = 2*DELTA;
-        else if (ALGO == 2)
+        else
             upperBound = DELTA+1;
         return color >= 1 && color <= upperBound;
     }
@@ -127,16 +133,22 @@ public class Experiments {
         for (Node v: nodes){
             int color = v.getColor();
             if (!legalColor(color)) {
-                System.out.println("Test failed: illegal color!!!");
+                System.err.println("Test failed: illegal color!!!");
                 return false;
             }
             for (Node u: v.getNeighbors()){
                 if (color == u.getColor()) {
-                    System.out.println("Test failed: a neighbor with same color!!!");
+                    System.err.println("!!!! Test failed: a neighbor with same color " + color + " !!!!");
                     return false;
                 }
             }
         }
         return true;
     }
+
+    // colors
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+
 }

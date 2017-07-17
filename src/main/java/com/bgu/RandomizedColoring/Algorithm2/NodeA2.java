@@ -16,7 +16,7 @@ public class NodeA2 extends Node {
     public boolean checkColor(){
         color = new Random().nextInt(2); // drawn color from [0,1]
         if (color == 0){
-            Experiments.phaser.arriveAndAwaitAdvance(); // discard color and continue to the next round
+            Experiments.roundPhaser.arriveAndAwaitAdvance(); // discard color and continue to the next round
             return true;
         }
         return false;
