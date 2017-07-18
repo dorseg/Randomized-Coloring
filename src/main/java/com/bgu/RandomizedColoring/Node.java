@@ -34,9 +34,9 @@ public abstract class Node implements Runnable{
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
                 continue;
             color = chooseColor();
-
             broadcastMessage(new ColorMessage(color, false)); // send a non final message to all neighbors
             Experiments.colorPhaser.arriveAndAwaitAdvance(); // wait for all nodes to choose color
+
             Queue<ColorMessage> copyMessages = new ConcurrentLinkedQueue(inMessages);
             for (ColorMessage msg : copyMessages){
                 if (!msg.isFinal()){
@@ -52,7 +52,7 @@ public abstract class Node implements Runnable{
                 terminated = true;
             }
             else {
-                Experiments.finalColorPhaser.arriveAndAwaitAdvance();
+                Experiments.finalColorPhaser.arriveAndAwaitAdvance(); // wait
                 copyMessages = new ConcurrentLinkedQueue(inMessages);
                 for (ColorMessage msg : copyMessages){
                     if (msg.isFinal()) {

@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * This class represents a node in algorithm 2 - <i><Rand-Delta-Plus1</i>
+ */
 public class NodeA2 extends Node {
 
     public NodeA2(int id){

@@ -18,20 +18,20 @@ import java.util.concurrent.TimeUnit;
 public class Experiments {
 
     // modify for execution
-    public final static int numOfGraphs = 50;
+    public final static int numOfGraphs = 100;
     public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
-    public static int numOfNodes = 100;
+    public static int numOfNodes = 1000;
     public static double p = 0.5;
 
     // global variables
     public static int DELTA = -1;
     public static int round = 0;
-    public static Phaser roundPhaser;
-    public static Phaser colorPhaser;
-    public static Phaser finalColorPhaser;
+    public static Phaser roundPhaser = null;
+    public static Phaser colorPhaser = null;
+    public static Phaser finalColorPhaser = null;
 
     public static void main(String[] args) {
-        boolean allTestPassed = true;
+        boolean allTestsPassed = true;
         double averageRounds = 0;
 
         for (int i=0; i<numOfGraphs; i++) {
@@ -52,7 +52,7 @@ public class Experiments {
             DELTA = calculateDelta(nodes);
             runAlgo(nodes);
             if (!test(nodes)) {
-                allTestPassed = false;
+                allTestsPassed = false;
                 System.err.println("!!!! Failed with graph number " + i + " !!!!");
             }
             averageRounds += round;
@@ -68,7 +68,7 @@ public class Experiments {
         System.out.println("Total rounds: " + averageRounds);
         System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
         System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println("Test Result: " + (allTestPassed ? ANSI_GREEN + "PASS" + ANSI_RESET:ANSI_RED  +  "FAIL" + ANSI_RESET));
+        System.out.println("Test Result: " + (allTestsPassed ? ANSI_GREEN + "PASS" + ANSI_RESET:ANSI_RED  +  "FAIL" + ANSI_RESET));
         System.out.println("========== END ==========");
     }
 
