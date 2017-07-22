@@ -8,7 +8,9 @@ import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,9 +20,9 @@ import java.util.concurrent.TimeUnit;
 public class Experiments {
 
     // modify for execution
-    public final static int numOfGraphs = 100;
-    public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
-    public static int numOfNodes = 1000;
+    public final static int numOfGraphs = 50;
+    public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
+    public static int numOfNodes = 500;
     public static double p = 0.5;
 
     // global variables
@@ -32,7 +34,7 @@ public class Experiments {
 
     public static void main(String[] args) {
         boolean allTestsPassed = true;
-        double averageRounds = 0;
+        double averageRounds = 0, averageDistinctColors = 0, averageDelta = 0;
 
         for (int i=0; i<numOfGraphs; i++) {
             System.out.println("\n===================== Graph number "+ i +" =====================");
@@ -55,19 +57,25 @@ public class Experiments {
                 allTestsPassed = false;
                 System.err.println("!!!! Failed with graph number " + i + " !!!!");
             }
+            averageDistinctColors += numOfDistinctColors(nodes);
+            averageDelta += DELTA;
             averageRounds += round;
             round = 0;
+
         }
 
         System.out.println("\n======== Results ========");
         System.out.println("Algorithm number: " + ALGO);
         System.out.println("Number of tested graphs: " + numOfGraphs);
         System.out.println("Number of nodes: " + numOfNodes);
-        System.out.println("DELTA: " + DELTA);
         System.out.println("probability: " + p);
-        System.out.println("Total rounds: " + averageRounds);
-        System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
         System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
+        System.out.println("##################");
+        averageDelta /= numOfGraphs;
+        System.out.println("Average Delta: " + averageDelta);
+        System.out.println("Average Total Colors: " + (ALGO == 1 ? 2*averageDelta : averageDelta+1));
+        System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
+        System.out.println("Average distinct colors: " + averageDistinctColors/numOfGraphs);
         System.out.println("Test Result: " + (allTestsPassed ? ANSI_GREEN + "PASS" + ANSI_RESET:ANSI_RED  +  "FAIL" + ANSI_RESET));
         System.out.println("========== END ==========");
     }
@@ -143,6 +151,13 @@ public class Experiments {
             }
         }
         return true;
+    }
+
+    private static int numOfDistinctColors (Set<Node> nodes) {
+        Set<Integer> colors = new HashSet<>();
+        for (Node v: nodes)
+            colors.add(v.getColor());
+        return colors.size();
     }
 
     // colors
