@@ -2,15 +2,16 @@ package com.bgu.RandomizedColoring;
 
 import com.bgu.RandomizedColoring.Algorithm1.NodeA1VertexFactory;
 import com.bgu.RandomizedColoring.Algorithm2.NodeA2VertexFactory;
+import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.VertexFactory;
 import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.GraphUnion;
 import org.jgrapht.graph.SimpleGraph;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,11 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Experiments {
 
-    // modify for execution
-    public final static int numOfGraphs = 50;
     public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
-    public static int numOfNodes = 500;
-    public static double p = 0.5;
 
     // global variables
     public static int DELTA = -1;
@@ -33,56 +30,79 @@ public class Experiments {
     public static Phaser finalColorPhaser = null;
 
     public static void main(String[] args) {
-        boolean allTestsPassed = true;
-        double averageRounds = 0, averageDistinctColors = 0, averageDelta = 0;
+        // modify for execution
+        final int numOfGraphs = 50;
+        int numOfNodes = 500;
+        double p = 0.5;
 
-        for (int i=0; i<numOfGraphs; i++) {
-            System.out.println("\n===================== Graph number "+ i +" =====================");
-            roundPhaser = new Phaser(numOfNodes){
-                protected boolean onAdvance(int phase, int registeredParties) {
-                    System.out.println("======= Phase " + phase + " finished. Number of nodes for next phase: "+registeredParties+" =======");
-                    round++;
-                    return registeredParties == 0;
-                }
-            };
-            colorPhaser = new Phaser(numOfNodes);
-            finalColorPhaser = new Phaser(numOfNodes);
+//        testPartialColor(10, 100, 0.5, 0.5);
 
-            SimpleGraph<Node,DefaultEdge> graph = makeGraph();
-            Set<Node> nodes = graph.vertexSet();
-            setNeighborsForEachNode(graph);
-            DELTA = calculateDelta(nodes);
-            runAlgo(nodes);
-            if (!test(nodes)) {
-                allTestsPassed = false;
-                System.err.println("!!!! Failed with graph number " + i + " !!!!");
-            }
-            averageDistinctColors += numOfDistinctColors(nodes);
-            averageDelta += DELTA;
-            averageRounds += round;
-            round = 0;
-
-        }
-
+        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
         System.out.println("\n======== Results ========");
+        if (stats == null) {
+            System.err.println("Test Result: Fail. Exiting...");
+            return;
+        }
+        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
         System.out.println("Algorithm number: " + ALGO);
         System.out.println("Number of tested graphs: " + numOfGraphs);
         System.out.println("Number of nodes: " + numOfNodes);
         System.out.println("probability: " + p);
         System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println("##################");
-        averageDelta /= numOfGraphs;
-        System.out.println("Average Delta: " + averageDelta);
-        System.out.println("Average Total Colors: " + (ALGO == 1 ? 2*averageDelta : averageDelta+1));
-        System.out.println("Average Rounds: " + averageRounds/numOfGraphs);
-        System.out.println("Average distinct colors: " + averageDistinctColors/numOfGraphs);
-        System.out.println("Test Result: " + (allTestsPassed ? ANSI_GREEN + "PASS" + ANSI_RESET:ANSI_RED  +  "FAIL" + ANSI_RESET));
+        System.out.println(stats);
         System.out.println("========== END ==========");
     }
 
-    private static SimpleGraph<Node,DefaultEdge> makeGraph() {
+    private static Stats runExperiment(int numOfGraphs, int numOfNodes, double p) {
+        boolean allTestsPassed = true;
+        double avgDistinctColors = 0, avgDelta = 0, avgRounds = 0;
+        for (int i=0; i<numOfGraphs; i++) {
+            System.out.println("\n===================== Graph number "+ i +" =====================");
+            Graph<Node,DefaultEdge> graph = makeGraph(numOfNodes, p);
+            graphColoring(graph);
+            Set<Node> nodes = graph.vertexSet();
+            if (!test(nodes)) {
+                allTestsPassed = false;
+                System.err.println("!!!! Failed with graph number " + i + " !!!!");
+            }
+            avgDistinctColors += numOfDistinctColors(nodes);
+            avgDelta += DELTA;
+            avgRounds += round;
+            round = 0;
+        }
+
+        if (!allTestsPassed) return null;
+        return new Stats(avgDistinctColors/numOfGraphs,
+                avgDelta/numOfGraphs, avgRounds/numOfGraphs);
+    }
+
+    private static void graphColoring(Graph<Node, DefaultEdge> graph) {
+        Set<Node> nodes = graph.vertexSet();
+
+        Set<Node> nodesWithoutColor = new HashSet<>(); // for partial coloring
+        for (Node v: nodes)
+            if (v.getColor() == -1)
+                nodesWithoutColor.add(v);
+        System.out.println(">>>>>> Node without color: " +nodesWithoutColor.size()); // remove
+
+        round = 0;
+        roundPhaser = new Phaser(nodesWithoutColor.size()){
+            protected boolean onAdvance(int phase, int registeredParties) {
+                System.out.println("======= Phase " + phase + " finished. Number of nodes for next phase: "+registeredParties+" =======");
+                round++;
+                return registeredParties == 0;
+            }
+        };
+        colorPhaser = new Phaser(nodesWithoutColor.size());
+        finalColorPhaser = new Phaser(nodesWithoutColor.size());
+        setNeighborsForEachNode(graph);
+        DELTA = calculateDelta(nodes);
+        runAlgo(nodesWithoutColor);
+    }
+
+    private static Graph<Node,DefaultEdge> makeGraph(int numOfNodes, double p) {
         GnpRandomGraphGenerator<Node,DefaultEdge> graphGen = new GnpRandomGraphGenerator<>(numOfNodes, p);
-        SimpleGraph<Node,DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+        Graph<Node,DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
         VertexFactory<Node> vertexFactory;
         if (ALGO ==1 )
             vertexFactory = new NodeA1VertexFactory(0);
@@ -96,7 +116,7 @@ public class Experiments {
         return graph;
     }
 
-    private static void setNeighborsForEachNode(SimpleGraph<Node, DefaultEdge> graph) {
+    private static void setNeighborsForEachNode(Graph<Node, DefaultEdge> graph) {
         Set<Node> nodes = graph.vertexSet();
         for (Node node: nodes){
             List<Node> neighbors = Graphs.neighborListOf(graph, node);
@@ -115,7 +135,7 @@ public class Experiments {
     }
 
     private static void runAlgo(Set<Node> nodes) {
-        ExecutorService e = Executors.newFixedThreadPool(numOfNodes);
+        ExecutorService e = Executors.newFixedThreadPool(nodes.size());
         for(Node node: nodes)
             e.execute(new Thread(node));
         e.shutdown();
@@ -158,6 +178,44 @@ public class Experiments {
         for (Node v: nodes)
             colors.add(v.getColor());
         return colors.size();
+    }
+
+    private static void testPartialColor(int numOfNodes1, int numOfNodes2, double p1, double p2) {
+        Graph<Node,DefaultEdge> graph1 = makeGraph(numOfNodes1, p1);
+        Graph<Node,DefaultEdge> graph2 = makeGraph(numOfNodes2, p2);
+
+        graphColoring(graph1);
+        Set<Node> nodes1 = graph1.vertexSet();
+
+        if (!test(nodes1))
+            System.err.println("!!!! Failed with the first graph !!!!");
+
+        // create a union graph and color it
+        Graph<Node, DefaultEdge> union = new GraphUnion<>(graph1, graph2);
+        graphColoring(union);
+        System.out.println("Test Partial Color Result: " + (test(union.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
+
+    }
+
+    static class Stats {
+        public double averageDistinctColors;
+        public double averageDelta;
+        public double averageRounds;
+
+        public Stats (double avgDistinctColors, double avgDelta, double avgRounds) {
+            this.averageDistinctColors = avgDistinctColors;
+            this.averageDelta = avgDelta;
+            this.averageRounds = avgRounds;
+        }
+
+        public String toString() {
+            String head = "####### Stats #######\n";
+            String strRounds = "Average Rounds: " + averageRounds + "\n";
+            String strDelta = "Average Delta: " + averageDelta + "\n";
+            String strDistinctColors = "Average distinct colors: " + averageDistinctColors + "\n";
+            String strTotalColors = "Average Total Colors: " + (ALGO == 1 ? 2*averageDelta : averageDelta+1);
+            return head + strRounds + strDelta + strDistinctColors + strTotalColors;
+        }
     }
 
     // colors

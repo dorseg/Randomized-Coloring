@@ -29,6 +29,10 @@ public abstract class Node implements Runnable{
 
     @Override
     public void run() {
+        // update final colors in case of partial coloring
+        for (Node v : neighbors)
+            finalColors.add(v.getColor());
+
         while (!terminated){
             tempColors.clear(); // T_v = empty set
             if (checkColor()) // for NodeA2 algorithm (in NodeA1 it returns false).
