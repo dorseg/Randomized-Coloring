@@ -35,22 +35,22 @@ public class Experiments {
         int numOfNodes = 500;
         double p = 0.5;
 
-//        testPartialColor(10, 100, 0.5, 0.5);
+        testPartialColor(10, 100, 0.5, 0.5);
 
-        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
-        System.out.println("\n======== Results ========");
-        if (stats == null) {
-            System.err.println("Test Result: Fail. Exiting...");
-            return;
-        }
-        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
-        System.out.println("Algorithm number: " + ALGO);
-        System.out.println("Number of tested graphs: " + numOfGraphs);
-        System.out.println("Number of nodes: " + numOfNodes);
-        System.out.println("probability: " + p);
-        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println(stats);
-        System.out.println("========== END ==========");
+//        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
+//        System.out.println("\n======== Results ========");
+//        if (stats == null) {
+//            System.err.println("Test Result: Fail. Exiting...");
+//            return;
+//        }
+//        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
+//        System.out.println("Algorithm number: " + ALGO);
+//        System.out.println("Number of tested graphs: " + numOfGraphs);
+//        System.out.println("Number of nodes: " + numOfNodes);
+//        System.out.println("probability: " + p);
+//        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
+//        System.out.println(stats);
+//        System.out.println("========== END ==========");
     }
 
     private static Stats runExperiment(int numOfGraphs, int numOfNodes, double p) {
@@ -76,7 +76,7 @@ public class Experiments {
                 avgDelta/numOfGraphs, avgRounds/numOfGraphs);
     }
 
-    private static void graphColoring(Graph<Node, DefaultEdge> graph) {
+    private static void graphColoring(Graph<Node, DefaultEdge> graph, int nunOfNodesToColor) {
         Set<Node> nodes = graph.vertexSet();
 
         Set<Node> nodesWithoutColor = new HashSet<>(); // for partial coloring
@@ -180,9 +180,8 @@ public class Experiments {
         return colors.size();
     }
 
-    private static void testPartialColor(int numOfNodes1, int numOfNodes2, double p1, double p2) {
-        Graph<Node,DefaultEdge> graph1 = makeGraph(numOfNodes1, p1);
-        Graph<Node,DefaultEdge> graph2 = makeGraph(numOfNodes2, p2);
+    private static void testPartialColor(int numOfNodes1, int numOfNodes2, double p) {
+        Graph<Node,DefaultEdge> graph = makeGraph(numOfNodes1+numOfNodes2, p);
 
         graphColoring(graph1);
         Set<Node> nodes1 = graph1.vertexSet();
@@ -191,7 +190,8 @@ public class Experiments {
             System.err.println("!!!! Failed with the first graph !!!!");
 
         // create a union graph and color it
-        Graph<Node, DefaultEdge> union = new GraphUnion<>(graph1, graph2);
+        Graph<Node, DefaultEdge> union = new Graph<>(graph1, graph2);
+        System.out.println("Number of nodes in the union: " + union.vertexSet().size());
         graphColoring(union);
         System.out.println("Test Partial Color Result: " + (test(union.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
 

@@ -30,6 +30,7 @@ public abstract class Node implements Runnable{
     @Override
     public void run() {
         // update final colors in case of partial coloring
+        finalColors.clear();
         for (Node v : neighbors)
             finalColors.add(v.getColor());
 
