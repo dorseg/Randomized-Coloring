@@ -35,7 +35,7 @@ public class Experiments {
         int numOfNodes = 500;
         double p = 0.5;
 
-        testPartialColor(10, 100, 0.5, 0.5);
+        testPartialColor(100, 104, 0.5);
 
 //        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
 //        System.out.println("\n======== Results ========");
@@ -59,7 +59,7 @@ public class Experiments {
         for (int i=0; i<numOfGraphs; i++) {
             System.out.println("\n===================== Graph number "+ i +" =====================");
             Graph<Node,DefaultEdge> graph = makeGraph(numOfNodes, p);
-            graphColoring(graph);
+            graphColoring(graph, graph.vertexSet().size());
             Set<Node> nodes = graph.vertexSet();
             if (!test(nodes)) {
                 allTestsPassed = false;
@@ -77,13 +77,17 @@ public class Experiments {
     }
 
     private static void graphColoring(Graph<Node, DefaultEdge> graph, int nunOfNodesToColor) {
-        Set<Node> nodes = graph.vertexSet();
-
+        int counter = 0; // count nodes to color
         Set<Node> nodesWithoutColor = new HashSet<>(); // for partial coloring
-        for (Node v: nodes)
-            if (v.getColor() == -1)
+        for (Node v: graph.vertexSet()) {
+            if (counter == nunOfNodesToColor)
+                break;
+            else if (v.getColor() == -1) {
                 nodesWithoutColor.add(v);
-        System.out.println(">>>>>> Node without color: " +nodesWithoutColor.size()); // remove
+                counter++;
+            }
+        }
+        System.out.println(">>>>>> Nodes without color: " +nodesWithoutColor.size()); // remove
 
         round = 0;
         roundPhaser = new Phaser(nodesWithoutColor.size()){
@@ -96,7 +100,7 @@ public class Experiments {
         colorPhaser = new Phaser(nodesWithoutColor.size());
         finalColorPhaser = new Phaser(nodesWithoutColor.size());
         setNeighborsForEachNode(graph);
-        DELTA = calculateDelta(nodes);
+        DELTA = calculateDelta(graph.vertexSet());
         runAlgo(nodesWithoutColor);
     }
 
@@ -180,21 +184,13 @@ public class Experiments {
         return colors.size();
     }
 
-    private static void testPartialColor(int numOfNodes1, int numOfNodes2, double p) {
-        Graph<Node,DefaultEdge> graph = makeGraph(numOfNodes1+numOfNodes2, p);
+    private static void testPartialColor(int numOfNodesToColor, int numOfTotalNodes, double p) {
+        Graph<Node,DefaultEdge> graph = makeGraph(numOfTotalNodes, p);
+        graphColoring(graph, numOfNodesToColor); // partial coloring
 
-        graphColoring(graph1);
-        Set<Node> nodes1 = graph1.vertexSet();
-
-        if (!test(nodes1))
-            System.err.println("!!!! Failed with the first graph !!!!");
-
-        // create a union graph and color it
-        Graph<Node, DefaultEdge> union = new Graph<>(graph1, graph2);
-        System.out.println("Number of nodes in the union: " + union.vertexSet().size());
-        graphColoring(union);
-        System.out.println("Test Partial Color Result: " + (test(union.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
-
+        // Part of the graph is already colored
+        graphColoring(graph, numOfTotalNodes);
+        System.out.println("Test Partial Color Result: " + (test(graph.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
     }
 
     static class Stats {
