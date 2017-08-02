@@ -36,8 +36,11 @@ public class Experiments {
         double p = 1;
 
 //        testPartialColor(499, 500, 1);
-        testClique(10, 10);
+ //       testClique(10, 10);
 //        testProbs(100, 20);
+//        testClique(20, 10);
+       testProbs(100, 500);
+
 
 //        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
 //        System.out.println("\n======== Results ========");
@@ -196,7 +199,7 @@ public class Experiments {
     }
 
     private static void testProbs(int numOfNodes, int maxIter) {
-        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 0.1); // create one graph
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
         setNeighborsForEachNode(graph);
         Set<Node> nodes = graph.vertexSet();
 
@@ -220,7 +223,29 @@ public class Experiments {
             colors_avg[i] = colorsSum[i]/maxIter;
         System.out.println("delta: " +delta);
         System.out.println(Arrays.toString(colors_avg));
+        System.out.println("mean: " + getMean(colors_avg));
+        System.out.println("std: " + getStd(colors_avg));
 
+    }
+
+    private static double getMean(double[] colors_avg){
+        int length = colors_avg.length;
+        double mean = 0;
+        for (int i=0; i<length; i++){
+            mean += colors_avg[i];
+        }
+        return mean/length;
+    }
+
+    private static double getStd(double[] colors_avg){
+        int length = colors_avg.length;
+        double mean = getMean(colors_avg);
+        double variance = 0;
+        for (int i=0; i<length; i++){
+            variance += (colors_avg[i]-mean)*(colors_avg[i]-mean);
+        }
+        variance = variance/(length-1);
+        return Math.sqrt(variance);
     }
 
     private static void testClique(int numOfNodes, int maxIter) {
