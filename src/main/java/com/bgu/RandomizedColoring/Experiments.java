@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Experiments {
 
-    public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
+    public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
 
     // global variables
     public static int DELTA = -1;
@@ -35,21 +35,22 @@ public class Experiments {
         double p = 0.1;
 
 //        testPartialColor(499, 500, 1);
+        testClique(100, 500);
 
-        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
-        System.out.println("\n======== Results ========");
-        if (stats == null) {
-            System.err.println("Test Result: Fail. Exiting...");
-            return;
-        }
-        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
-        System.out.println("Algorithm number: " + ALGO);
-        System.out.println("Number of tested graphs: " + numOfGraphs);
-        System.out.println("Number of nodes: " + numOfNodes);
-        System.out.println("probability: " + p);
-        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-        System.out.println(stats);
-        System.out.println("========== END ==========");
+//        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
+//        System.out.println("\n======== Results ========");
+//        if (stats == null) {
+//            System.err.println("Test Result: Fail. Exiting...");
+//            return;
+//        }
+//        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
+//        System.out.println("Algorithm number: " + ALGO);
+//        System.out.println("Number of tested graphs: " + numOfGraphs);
+//        System.out.println("Number of nodes: " + numOfNodes);
+//        System.out.println("probability: " + p);
+//        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
+//        System.out.println(stats);
+//        System.out.println("========== END ==========");
     }
 
     private static Stats runExperiment(int numOfGraphs, int numOfNodes, double p) {
@@ -192,13 +193,26 @@ public class Experiments {
         System.out.println("Test Partial Color Result: " + (test(graph.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
     }
 
-    private static void testClique(int numOfNodes) {
-        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1);
-        graphColoring(graph, numOfNodes);
-        for (Node v : graph.vertexSet())
-            v.setColor(-1);
-        graphColoring(graph, numOfNodes);
+    private static void testClique(int numOfNodes, int maxIter) {
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
+        setNeighborsForEachNode(graph);
+        Set<Node> nodes = graph.vertexSet();
+        int delta = calculateDelta(nodes);
+        System.out.println("delta: " +delta);
+        int length = ALGO == 1 ? 2*delta : delta+1;
+        int countColor[] = new int[length];
+        for (int i=0; i<maxIter; i++) {
+            graphColoring(graph, numOfNodes);
+            for (Node v : nodes) {
+                countColor[v.getColor()-1]++;
+                v.setColor(-1);
+            }
+        }
 
+        for(int i=0; i<countColor.length; i++) {
+            System.out.println("color index: " + i);
+            System.out.println("color probability: " + countColor[i]/maxIter);
+        }
     }
 
 
