@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Experiments {
 
-    public final static int ALGO = 1; // 1 - first algorithm. 2 - second algorithm.
+    public final static int ALGO = 2; // 1 - first algorithm. 2 - second algorithm.
 
     // global variables
     public static int DELTA = -1;
@@ -36,7 +36,7 @@ public class Experiments {
         double p = 1;
 
 //        testPartialColor(499, 500, 1);
-        testClique(20, 10);
+        testClique(10, 10);
 //        testProbs(100, 20);
 
 //        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
@@ -224,7 +224,8 @@ public class Experiments {
     }
 
     private static void testClique(int numOfNodes, int maxIter) {
-        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
+        double p = 0.1;
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, p); // create one graph
         int stats [][] = new int[numOfNodes][maxIter];
         for (int i=0; i<maxIter; i++) {
             graphColoring(graph, numOfNodes);
@@ -235,6 +236,8 @@ public class Experiments {
             }
         }
         printMatrix(stats);
+        System.out.println("p: " + p);
+
     }
 
     private static void printMatrix(int[][] m) {
