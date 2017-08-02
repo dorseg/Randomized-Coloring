@@ -9,6 +9,7 @@ import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,8 +36,8 @@ public class Experiments {
         double p = 1;
 
 //        testPartialColor(499, 500, 1);
-       //testClique(20, 5);
-        testProbs(100, 500);
+        testClique(20, 10);
+//        testProbs(100, 20);
 
 //        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
 //        System.out.println("\n======== Results ========");
@@ -198,10 +199,11 @@ public class Experiments {
         Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 0.1); // create one graph
         setNeighborsForEachNode(graph);
         Set<Node> nodes = graph.vertexSet();
+
         int delta = calculateDelta(nodes);
-        System.out.println("delta: " +delta);
         int length = ALGO == 1 ? 2*delta : delta+1;
         double colorsSum[] = new double[length];
+        double colors_avg[] = new double[length];
         for (int i=0; i<maxIter; i++) {
             int colors[] = new int[length];
             graphColoring(graph, numOfNodes);
@@ -214,25 +216,45 @@ public class Experiments {
             }
         }
 
-        for(int i=0; i<length; i++) {
-            double averageUsage = colorsSum[i]/maxIter;
-            System.out.println("color: " + (i+1) + ", average usage: " + averageUsage);
-        }
+        for(int i=0; i<length; i++)
+            colors_avg[i] = colorsSum[i]/maxIter;
+        System.out.println("delta: " +delta);
+        System.out.println(Arrays.toString(colors_avg));
+
     }
 
     private static void testClique(int numOfNodes, int maxIter) {
         Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
-
+        int stats [][] = new int[numOfNodes][maxIter];
         for (int i=0; i<maxIter; i++) {
             graphColoring(graph, numOfNodes);
-            System.out.println("==== Iter " + (i+1));
             for (Node v : graph.vertexSet()) {
-                System.out.println("vertex: " + v.id + ", color: " + v.color);
+                stats[v.id][i] = v.color;
+                //System.out.println("vertex: " + v.id + ", color: " + v.color);
                 v.setColor(-1);
             }
         }
+        printMatrix(stats);
     }
 
+    private static void printMatrix(int[][] m) {
+        try {
+            int rows = m.length;
+            int columns = m[0].length;
+            String str = "|\t";
+
+            for (int i = 0; i < rows; i++) {
+                str = "vertex "+i+": " +str;
+                for (int j = 0; j < columns; j++) {
+                    str += m[i][j] + "\t";
+                }
+                System.out.println(str + "|");
+                str = "|\t";
+            }
+        } catch (Exception e) {
+            System.out.println("Matrix is empty!!");
+        }
+    }
 
     static class Stats {
         public double averageDistinctColors;
@@ -256,8 +278,8 @@ public class Experiments {
     }
 
     // colors
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_GREEN = "\u001B[32m";
 
 }
