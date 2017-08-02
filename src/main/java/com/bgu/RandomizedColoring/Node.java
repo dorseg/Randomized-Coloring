@@ -126,4 +126,8 @@ public abstract class Node implements Runnable{
     public List<Node> getNeighbors(){
         return neighbors;
     }
+
+    public void setColor (int color) {
+        this.color = color;
+    }
 }

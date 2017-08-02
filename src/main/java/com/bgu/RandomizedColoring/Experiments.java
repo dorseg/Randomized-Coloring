@@ -7,7 +7,6 @@ import org.jgrapht.Graphs;
 import org.jgrapht.VertexFactory;
 import org.jgrapht.generate.GnpRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.GraphUnion;
 import org.jgrapht.graph.SimpleGraph;
 
 import java.util.HashSet;
@@ -33,24 +32,24 @@ public class Experiments {
         // modify for execution
         final int numOfGraphs = 50;
         int numOfNodes = 500;
-        double p = 0.5;
+        double p = 0.1;
 
-        testPartialColor(100, 104, 0.5);
+//        testPartialColor(499, 500, 1);
 
-//        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
-//        System.out.println("\n======== Results ========");
-//        if (stats == null) {
-//            System.err.println("Test Result: Fail. Exiting...");
-//            return;
-//        }
-//        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
-//        System.out.println("Algorithm number: " + ALGO);
-//        System.out.println("Number of tested graphs: " + numOfGraphs);
-//        System.out.println("Number of nodes: " + numOfNodes);
-//        System.out.println("probability: " + p);
-//        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
-//        System.out.println(stats);
-//        System.out.println("========== END ==========");
+        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
+        System.out.println("\n======== Results ========");
+        if (stats == null) {
+            System.err.println("Test Result: Fail. Exiting...");
+            return;
+        }
+        System.out.println("Test Result: " + ANSI_GREEN + "PASS" + ANSI_RESET);
+        System.out.println("Algorithm number: " + ALGO);
+        System.out.println("Number of tested graphs: " + numOfGraphs);
+        System.out.println("Number of nodes: " + numOfNodes);
+        System.out.println("probability: " + p);
+        System.out.println("log(numOfNodes) = " +Math.log(numOfNodes)/Math.log(2));
+        System.out.println(stats);
+        System.out.println("========== END ==========");
     }
 
     private static Stats runExperiment(int numOfGraphs, int numOfNodes, double p) {
@@ -192,6 +191,16 @@ public class Experiments {
         graphColoring(graph, numOfTotalNodes);
         System.out.println("Test Partial Color Result: " + (test(graph.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
     }
+
+    private static void testClique(int numOfNodes) {
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1);
+        graphColoring(graph, numOfNodes);
+        for (Node v : graph.vertexSet())
+            v.setColor(-1);
+        graphColoring(graph, numOfNodes);
+
+    }
+
 
     static class Stats {
         public double averageDistinctColors;
