@@ -31,6 +31,8 @@ public abstract class Node implements Runnable{
     public void run() {
         // update final colors in case of partial coloring
         finalColors.clear();
+        terminated = false;
+        inMessages.clear();
         for (Node v : neighbors)
             finalColors.add(v.getColor());
 
@@ -111,6 +113,7 @@ public abstract class Node implements Runnable{
      * update the neighbors for the node after the graph creation.
      */
     public void setNeighbors(List<Node> nodes){
+        neighbors.clear();
         neighbors.addAll(nodes);
     }
 

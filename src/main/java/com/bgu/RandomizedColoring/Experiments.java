@@ -31,11 +31,12 @@ public class Experiments {
     public static void main(String[] args) {
         // modify for execution
         final int numOfGraphs = 50;
-        int numOfNodes = 500;
-        double p = 0.1;
+        int numOfNodes = 100;
+        double p = 1;
 
 //        testPartialColor(499, 500, 1);
-        testClique(100, 500);
+       //testClique(20, 5);
+        testProbs(100, 500);
 
 //        Stats stats = runExperiment(numOfGraphs, numOfNodes, p);
 //        System.out.println("\n======== Results ========");
@@ -193,25 +194,42 @@ public class Experiments {
         System.out.println("Test Partial Color Result: " + (test(graph.vertexSet()) ? ANSI_GREEN+"PASS"+ANSI_RESET:ANSI_RED+"FAIL"+ANSI_RESET));
     }
 
-    private static void testClique(int numOfNodes, int maxIter) {
-        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
+    private static void testProbs(int numOfNodes, int maxIter) {
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 0.1); // create one graph
         setNeighborsForEachNode(graph);
         Set<Node> nodes = graph.vertexSet();
         int delta = calculateDelta(nodes);
         System.out.println("delta: " +delta);
         int length = ALGO == 1 ? 2*delta : delta+1;
-        int countColor[] = new int[length];
+        double colorsSum[] = new double[length];
         for (int i=0; i<maxIter; i++) {
+            int colors[] = new int[length];
             graphColoring(graph, numOfNodes);
             for (Node v : nodes) {
-                countColor[v.getColor()-1]++;
+                colors[v.getColor()-1]++;
                 v.setColor(-1);
+            }
+            for (int j=0; j<length; j++){
+                colorsSum[j] += colors[j];
             }
         }
 
-        for(int i=0; i<countColor.length; i++) {
-            System.out.println("color index: " + i);
-            System.out.println("color probability: " + countColor[i]/maxIter);
+        for(int i=0; i<length; i++) {
+            double averageUsage = colorsSum[i]/maxIter;
+            System.out.println("color: " + (i+1) + ", average usage: " + averageUsage);
+        }
+    }
+
+    private static void testClique(int numOfNodes, int maxIter) {
+        Graph<Node, DefaultEdge> graph = makeGraph(numOfNodes, 1); // create one graph
+
+        for (int i=0; i<maxIter; i++) {
+            graphColoring(graph, numOfNodes);
+            System.out.println("==== Iter " + (i+1));
+            for (Node v : graph.vertexSet()) {
+                System.out.println("vertex: " + v.id + ", color: " + v.color);
+                v.setColor(-1);
+            }
         }
     }
 
